@@ -1,0 +1,79 @@
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import User from '../models/UserModel.js';
+
+const router = express.Router();
+
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret_key', {
+    expiresIn: '30d',
+  });
+};
+
+// @desc    Register a new user
+// @route   POST /api/auth/register
+// @access  Public
+router.post('/register', async (req, res) => {
+  try {
+    const { name, universityId, email, password, role } = req.body;
+
+    const userExists = await User.findOne({ $or: [{ email }, { universityId }] });
+    if (userExists) {
+      res.status(400);
+      throw new Error('User already exists');
+    }
+
+    const user = await User.create({
+      name,
+      universityId,
+      email,
+      password,
+      role: role || 'student', // default to student unless specified
+    });
+
+    if (user) {
+      res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        universityId: user.universityId,
+        email: user.email,
+        role: user.role,
+        token: generateToken(user._id),
+      });
+    } else {
+      res.status(400);
+      throw new Error('Invalid user data');
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// @desc    Auth user & get token
+// @route   POST /api/auth/login
+// @access  Public
+router.post('/login', async (req, res) => {
+  try {
+    const { universityId, password } = req.body;
+
+    const user = await User.findOne({ universityId });
+
+    if (user && (await user.matchPassword(password))) {
+      res.json({
+        _id: user._id,
+        name: user.name,
+        universityId: user.universityId,
+        email: user.email,
+        role: user.role,
+        token: generateToken(user._id),
+      });
+    } else {
+      res.status(401);
+      throw new Error('Invalid ID or password');
+    }
+  } catch (error) {
+    res.status(401).json({ message: error.message });
+  }
+});
+
+export default router;

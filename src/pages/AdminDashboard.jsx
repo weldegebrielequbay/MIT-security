@@ -1,0 +1,343 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { LogOut, Search, Activity, Users, Database, ShieldCheck, Laptop, MapPin, ArrowRightCircle, Loader2 } from 'lucide-react';
+import api from '../api';
+import mitLogo from '../assets/mit_logo.svg';
+import muLogo from '../assets/mu_logo.svg';
+
+const AdminDashboard = () => {
+  const { user, logout } = useAuth();
+  const [stats, setStats] = useState(null);
+  const [activities, setActivities] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' or 'users'
+
+  // User Management State
+  const [userQuery, setUserQuery] = useState('');
+  const [users, setUsers] = useState([]);
+  const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+  const [editingUserId, setEditingUserId] = useState(null);
+  const [newId, setNewId] = useState('');
+  const [isUpdatingId, setIsUpdatingId] = useState(false);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [statsRes, activitiesRes] = await Promise.all([
+        api.get('/admin/stats'),
+        api.get('/admin/activities')
+      ]);
+      setStats(statsRes.data);
+      setActivities(activitiesRes.data);
+    } catch (error) {
+      console.error('Error fetching admin data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleUserSearch = async (e) => {
+    e.preventDefault();
+    if (!userQuery.trim()) return;
+    setIsSearchingUsers(true);
+    try {
+      const { data } = await api.get(`/admin/users/search?q=${encodeURIComponent(userQuery)}`);
+      setUsers(data);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      alert('Failed to search users');
+    } finally {
+      setIsSearchingUsers(false);
+    }
+  };
+
+  const handleUpdateId = async (userId) => {
+    if (!newId.trim()) return;
+    setIsUpdatingId(true);
+    try {
+      await api.patch(`/admin/users/${userId}/universityId`, { universityId: newId });
+      alert('University ID updated successfully');
+      setUsers(users.map(u => u._id === userId ? { ...u, universityId: newId } : u));
+      setEditingUserId(null);
+      setNewId('');
+      fetchData(); // Refresh stats
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to update ID');
+    } finally {
+      setIsUpdatingId(false);
+    }
+  };
+
+  const statsDisplay = stats ? [
+    { name: 'Student Registries', value: stats.totalLaptops, icon: <Laptop size={24} className="text-blue-400" />, change: 'Verified Devices' },
+    { name: 'In Campus (Students)', value: stats.laptopsInCampus, icon: <MapPin size={24} className="text-emerald-400" />, change: 'Currently Present' },
+    { name: 'Out of Campus (Students)', value: stats.laptopsOutCampus, icon: <ArrowRightCircle size={24} className="text-amber-400" />, change: 'Currently Away' },
+    { name: 'Total Students', value: stats.totalStudents, icon: <Users size={24} className="text-indigo-400" />, change: 'Registered' },
+  ] : [];
+
+  return (
+    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans">
+      <div className="flex min-h-screen">
+        {/* Sidebar */}
+        <aside className="w-64 bg-slate-800 border-r border-slate-700 hidden md:flex flex-col sticky top-0 h-screen">
+          <div className="h-auto flex flex-col items-center py-6 border-b border-slate-700 gap-4">
+            <div className="bg-white p-3 rounded-2xl w-10/12 flex items-center justify-center gap-2 shadow-sm">
+              <img src={mitLogo} alt="MIT" className="h-8 w-auto object-contain" />
+              <img src={muLogo} alt="MU" className="h-8 w-auto object-contain" />
+            </div>
+            <span className="font-bold text-lg tracking-wide text-white">Admin Portal</span>
+          </div>
+
+          <div className="p-4 flex-1">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 ml-2">Main Menu</p>
+            <nav className="space-y-1">
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${activeTab === 'dashboard'
+                  ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 shadow-lg'
+                  : 'text-slate-400 hover:bg-slate-700/30 hover:text-slate-200'
+                  }`}
+              >
+                <Activity size={18} /> Dashboard
+              </button>
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${activeTab === 'users'
+                  ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 shadow-lg'
+                  : 'text-slate-400 hover:bg-slate-700/30 hover:text-slate-200'
+                  }`}
+              >
+                <ShieldCheck size={18} /> ID Correction
+              </button>
+            </nav>
+          </div>
+
+          <div className="p-4 border-t border-slate-700">
+            <div className="flex items-center gap-3 px-3 py-2 mb-2">
+              <div className="h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">
+                {user.name.charAt(0)}
+              </div>
+              <div className="overflow-hidden">
+                <p className="text-sm font-medium text-slate-200 truncate">{user.name}</p>
+                <p className="text-xs text-slate-500 truncate">{user.role}</p>
+              </div>
+            </div>
+            <button
+              onClick={logout}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+            >
+              <LogOut size={16} /> Sign Out
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col">
+          <header className="h-16 bg-slate-800 border-b border-slate-700 flex md:hidden items-center justify-between px-4">
+            <div className="flex items-center gap-2 bg-white px-2 py-1.5 rounded-lg">
+              <img src={mitLogo} alt="MIT" className="h-6 w-auto" />
+              <img src={muLogo} alt="MU" className="h-6 w-auto" />
+            </div>
+            <span className="font-bold text-white ml-2">Admin Control</span>
+            <button onClick={logout} className="p-2 text-slate-400">
+              <LogOut size={20} />
+            </button>
+          </header>
+
+          <div className="p-6 md:p-8 max-w-7xl w-full mx-auto">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
+                {activeTab === 'dashboard' ? 'System Overview' : 'Identity Management'}
+              </h1>
+              <p className="text-slate-400">
+                {activeTab === 'dashboard'
+                  ? 'Real-time statistics and activity for Campus Security.'
+                  : 'Search and correct student identification records.'}
+              </p>
+            </div>
+
+            {isLoading && activeTab === 'dashboard' ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="h-12 w-12 text-indigo-500 animate-spin mb-4" />
+                <p className="text-slate-400 font-medium">Loading meaningful insights...</p>
+              </div>
+            ) : activeTab === 'dashboard' ? (
+              <>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  {statsDisplay.map((stat, i) => (
+                    <div key={i} className="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-lg shadow-black/20">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                          {stat.icon}
+                        </div>
+                        <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-1 bg-slate-900/80 text-slate-400 rounded-md">
+                          {stat.change}
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{stat.name}</p>
+                      <p className="text-3xl font-bold text-white leading-none">{stat.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Activity Feed */}
+                <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-xl shadow-black/20 mb-8">
+                  <div className="px-6 py-5 border-b border-slate-700 flex justify-between items-center bg-slate-800/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-2">
+                      <Activity size={18} className="text-indigo-400" />
+                      <h3 className="font-bold text-lg text-white">Live Activity Feed</h3>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-slate-900/30 text-slate-400 text-[10px] uppercase tracking-widest font-bold">
+                          <th className="px-6 py-4">Action</th>
+                          <th className="px-6 py-4">Device</th>
+                          <th className="px-6 py-4">Student</th>
+                          <th className="px-6 py-4">Security Officer</th>
+                          <th className="px-6 py-4 text-right">Time</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-700/50">
+                        {activities.length > 0 ? activities.map((act) => (
+                          <tr key={act._id} className="hover:bg-slate-700/20 transition-colors">
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${act.action === 'Checked In'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                }`}>
+                                {act.action}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <p className="text-sm font-semibold text-slate-200">{act.laptopId?.brand} {act.laptopId?.model}</p>
+                              <p className="text-[10px] font-mono text-slate-500">{act.laptopId?.serialNumber}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                              <p className="text-sm font-medium text-slate-300">{act.studentId?.name}</p>
+                              <p className="text-[10px] text-slate-500">{act.studentId?.universityId}</p>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-slate-400 font-medium">
+                              {act.guardId?.name?.split(' ')[0]}
+                            </td>
+                            <td className="px-6 py-4 text-right text-xs text-slate-500 font-medium">
+                              {new Date(act.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                          </tr>
+                        )) : (
+                          <tr>
+                            <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                              <div className="flex flex-col items-center">
+                                <Database size={40} className="mb-3 opacity-20" />
+                                <p>No movement activities recorded yet.</p>
+                                <p className="text-xs mt-1">Status updates from checkpoints will appear here.</p>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* User Management Tab */
+              <div className="space-y-6">
+                <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+                  <form onSubmit={handleUserSearch} className="flex gap-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+                      <input
+                        type="text"
+                        value={userQuery}
+                        onChange={(e) => setUserQuery(e.target.value)}
+                        placeholder="Search student by name or current ID..."
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isSearchingUsers}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2"
+                    >
+                      {isSearchingUsers ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
+                      Search
+                    </button>
+                  </form>
+                </div>
+
+                <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-xl">
+                  <div className="px-6 py-5 border-b border-slate-700 bg-slate-800/50">
+                    <h3 className="font-bold text-white">Search Results</h3>
+                  </div>
+                  <div className="divide-y divide-slate-700/50">
+                    {users.length > 0 ? users.map((u) => (
+                      <div key={u._id} className="p-6 hover:bg-slate-700/10 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <p className="text-lg font-bold text-white">{u.name}</p>
+                          <p className="text-sm text-slate-400">Current ID: <span className="font-mono text-indigo-400 font-bold">{u.universityId}</span></p>
+                          <p className="text-xs text-slate-500 mt-1">{u.email}</p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          {editingUserId === u._id ? (
+                            <div className="flex items-center gap-2 bg-slate-900 p-2 rounded-xl border border-indigo-500/30">
+                              <input
+                                type="text"
+                                value={newId}
+                                onChange={(e) => setNewId(e.target.value)}
+                                placeholder="Enter correct ID"
+                                className="bg-transparent border-none outline-none text-sm px-2 w-32 sm:w-48"
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => handleUpdateId(u._id)}
+                                disabled={isUpdatingId}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-all"
+                                title="Save"
+                              >
+                                {isUpdatingId ? <Loader2 className="animate-spin" size={16} /> : <ShieldCheck size={16} />}
+                              </button>
+                              <button
+                                onClick={() => { setEditingUserId(null); setNewId(''); }}
+                                className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-lg transition-all"
+                                title="Cancel"
+                              >
+                                <LogOut size={16} className="rotate-180" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => { setEditingUserId(u._id); setNewId(u.universityId); }}
+                              className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-slate-600"
+                            >
+                              Correct ID
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="p-12 text-center text-slate-500">
+                        <Users size={48} className="mx-auto mb-4 opacity-10" />
+                        <p>No students found matching your search.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;
