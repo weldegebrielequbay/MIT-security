@@ -1,16 +1,69 @@
-# React + Vite
+# MIT & MU Laptop Registration and Verification System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, secure, and efficient web application designed to track and verify student laptops within the university campus. This system helps prevent theft and ensures that only authorized devices are moved in and out of the campus.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### For Students
+- **Account Management**: Register with a unique University ID and multi-part name (First, Father's, and Grandfather's names).
+- **Device Registration**: Register multiple laptops with serial numbers, MAC addresses, and color descriptions.
+- **Secure Access**: Update passwords securely using a dedicated verification flow.
 
-## React Compiler
+### For Security Guards
+- **Real-time Verification**: Search for devices by Serial Number, MAC Address, or Student ID.
+- **Location Tracking**: Mark devices as "In Campus" or "Out of Campus" at checkpoints.
+- **Owner Validation**: Instantly view student details to confirm ownership.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### For Administrators
+- **System Overview**: Monitor real-time campus activity and statistics.
+- **Identity Management**: Correct student identification records and manage user accounts.
+- **Activity Feed**: Track all check-in/check-out events across the campus.
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Frontend**: React (Vite), Tailwind CSS, Lucide Icons, Axios.
+- **Backend**: Node.js, Express.js.
+- **Database**: MongoDB (Mongoose).
+- **Authentication**: JSON Web Tokens (JWT) with Bcrypt password hashing.
+
+## 🏁 Getting Started
+
+### Prerequisites
+- Node.js (v14+)
+- MongoDB running locally or on a cluster
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd laptop_registration_app
+   ```
+
+2. **Setup Backend**
+   ```bash
+   cd backend
+   npm install
+   # Create a .env file with JWT_SECRET and MONGODB_URI
+   node server.js
+   ```
+
+3. **Setup Frontend**
+   ```bash
+   cd ..
+   npm install
+   npm run dev
+   ```
+
+## 📂 Project Structure
+
+- `/src/pages`: Individual dashboard and auth pages.
+- `/src/components`: Reusable UI components (like the ChangePasswordModal).
+- `/src/context`: Auth context for session management.
+- `/backend/models`: Mongoose schemas for Users, Laptops, and Activity.
+- `/backend/routes`: Express API endpoints.
+- `/backend/middleware`: Authentication and authorization logic.
+
+## 📄 License
+
+This project is developed for the Laptop Registration and Verification System.
