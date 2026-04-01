@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/UserModel.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -73,6 +74,33 @@ router.post('/login', async (req, res) => {
     }
   } catch (error) {
     res.status(401).json({ message: error.message });
+  }
+});
+
+// @desc    Update user password
+// @route   PUT /api/auth/update-password
+// @access  Private
+router.put('/update-password', protect, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      res.status(400);
+      throw new Error('Please provide current and new passwords');
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (user && (await user.matchPassword(currentPassword))) {
+      user.password = newPassword;
+      await user.save();
+      res.json({ message: 'Password updated successfully' });
+    } else {
+      res.status(401);
+      throw new Error('Invalid current password');
+    }
+  } catch (error) {
+    res.status(res.statusCode === 200 ? 400 : res.statusCode).json({ message: error.message });
   }
 });
 

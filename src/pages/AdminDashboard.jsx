@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Search, Activity, Users, Database, ShieldCheck, Laptop, MapPin, ArrowRightCircle, Loader2 } from 'lucide-react';
+import { LogOut, Search, Activity, Users, Database, ShieldCheck, Laptop, MapPin, ArrowRightCircle, Loader2, KeyRound } from 'lucide-react';
 import api from '../api';
 import mitLogo from '../assets/mit_logo.svg';
 import muLogo from '../assets/mu_logo.svg';
+import ChangePasswordModal from '../components/ChangePasswordModal';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -19,6 +20,7 @@ const AdminDashboard = () => {
   const [editingUserId, setEditingUserId] = useState(null);
   const [newId, setNewId] = useState('');
   const [isUpdatingId, setIsUpdatingId] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -126,6 +128,12 @@ const AdminDashboard = () => {
                 <p className="text-xs text-slate-500 truncate">{user.role}</p>
               </div>
             </div>
+            <button
+              onClick={() => setShowPasswordModal(true)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:bg-indigo-400/10 hover:text-indigo-400 rounded-lg transition-colors mb-1"
+            >
+              <KeyRound size={16} /> Change Password
+            </button>
             <button
               onClick={logout}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
@@ -336,6 +344,11 @@ const AdminDashboard = () => {
           </div>
         </main>
       </div>
+
+      <ChangePasswordModal 
+        isOpen={showPasswordModal} 
+        onClose={() => setShowPasswordModal(false)} 
+      />
     </div>
   );
 };

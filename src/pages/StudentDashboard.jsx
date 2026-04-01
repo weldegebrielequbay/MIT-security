@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Plus, Laptop, User, ShieldCheck, Cpu, HardDrive } from 'lucide-react';
+import { LogOut, Plus, Laptop, User, ShieldCheck, Cpu, HardDrive, KeyRound } from 'lucide-react';
 import api from '../api';
 import mitLogo from '../assets/mit_logo.svg';
 import muLogo from '../assets/mu_logo.svg';
+import ChangePasswordModal from '../components/ChangePasswordModal';
 
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
@@ -16,6 +17,7 @@ const StudentDashboard = () => {
     macAddress: '',
     color: '',
   });
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const fetchLaptops = async () => {
     try {
@@ -59,6 +61,13 @@ const StudentDashboard = () => {
                 <User size={16} />
                 <span className="text-sm font-medium">{user.name} ({user.universityId})</span>
               </div>
+              <button
+                onClick={() => setShowPasswordModal(true)}
+                className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors"
+                title="Change Password"
+              >
+                <KeyRound size={20} />
+              </button>
               <button
                 onClick={logout}
                 className="flex items-center gap-2 text-slate-500 hover:text-red-500 transition-colors"
@@ -208,6 +217,11 @@ const StudentDashboard = () => {
           )}
         </div>
       </main>
+
+      <ChangePasswordModal 
+        isOpen={showPasswordModal} 
+        onClose={() => setShowPasswordModal(false)} 
+      />
     </div>
   );
 };

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Search, ShieldCheck, Laptop, User, AlertCircle, Cpu, HardDrive } from 'lucide-react';
+import { LogOut, Search, ShieldCheck, Laptop, User, AlertCircle, Cpu, HardDrive, KeyRound } from 'lucide-react';
 import api from '../api';
 import mitLogo from '../assets/mit_logo.svg';
 import muLogo from '../assets/mu_logo.svg';
 import { MapPin, ArrowRightCircle } from 'lucide-react';
+import ChangePasswordModal from '../components/ChangePasswordModal';
 
 const GuardDashboard = () => {
   const { user, logout } = useAuth();
@@ -13,6 +14,7 @@ const GuardDashboard = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -63,6 +65,13 @@ const GuardDashboard = () => {
                 <ShieldCheck size={16} className="text-emerald-500" />
                 <span className="text-sm font-medium">{user.name.split(' ')[0]}</span>
               </div>
+              <button
+                onClick={() => setShowPasswordModal(true)}
+                className="flex items-center gap-2 text-slate-400 hover:text-emerald-500 transition-colors"
+                title="Change Password"
+              >
+                <KeyRound size={20} />
+              </button>
               <button
                 onClick={logout}
                 className="flex items-center gap-2 text-slate-400 hover:text-red-400 transition-colors"
@@ -248,6 +257,11 @@ const GuardDashboard = () => {
           )}
         </div>
       </main>
+
+      <ChangePasswordModal 
+        isOpen={showPasswordModal} 
+        onClose={() => setShowPasswordModal(false)} 
+      />
     </div>
   );
 };
