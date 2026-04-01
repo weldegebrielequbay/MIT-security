@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # MIT & MU Laptop Registration and Verification System
 
 A modern, secure, and efficient web application designed to track and verify student laptops within the university campus. This system helps prevent theft and ensures that only authorized devices are moved in and out of the campus.
@@ -67,3 +68,7 @@ A modern, secure, and efficient web application designed to track and verify stu
 ## 📄 License
 
 This project is developed for the Laptop Registration and Verification System.
+=======
+# MIT-security
+a web based laptop verification app
+>>>>>>> 5f296111c22c8e19abe14a68eeb4aba3cf26fffc
