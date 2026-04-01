@@ -7,7 +7,9 @@ import muLogo from '../assets/mu_logo.svg';
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    fatherName: '',
+    grandfatherName: '',
     universityId: '',
     email: '',
     password: '',
@@ -27,7 +29,13 @@ const Register = () => {
     setIsLoading(true);
     setError('');
 
-    const result = await register(formData);
+    const { firstName, fatherName, grandfatherName, ...rest } = formData;
+    const payload = {
+      ...rest,
+      name: `${firstName} ${fatherName} ${grandfatherName}`.trim(),
+    };
+
+    const result = await register(payload);
     if (result.success) {
       navigate('/');
     } else {
@@ -59,20 +67,59 @@ const Register = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* First Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <User size={18} className="text-slate-400" />
               </div>
               <input
                 type="text"
-                name="name"
+                name="firstName"
                 required
-                value={formData.name}
+                value={formData.firstName}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                placeholder="hayelom haile"
+                placeholder="e.g. Hayelom"
+              />
+            </div>
+          </div>
+
+          {/* Father's Name */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Father's Name</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <User size={18} className="text-slate-400" />
+              </div>
+              <input
+                type="text"
+                name="fatherName"
+                required
+                value={formData.fatherName}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                placeholder="e.g. Haile"
+              />
+            </div>
+          </div>
+
+          {/* Grandfather's Name */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Grandfather's Name</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <User size={18} className="text-slate-400" />
+              </div>
+              <input
+                type="text"
+                name="grandfatherName"
+                required
+                value={formData.grandfatherName}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                placeholder="e.g. Teklay"
               />
             </div>
           </div>
