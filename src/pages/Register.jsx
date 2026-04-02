@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Laptop, Lock, Mail, User, Shield, AlertCircle } from 'lucide-react';
+import { Laptop, Lock, Mail, User, Shield, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import mitLogo from '../assets/mit_logo.svg';
 import muLogo from '../assets/mu_logo.svg';
 
@@ -19,6 +19,7 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState('password');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -43,9 +44,12 @@ const Register = () => {
     }
     setIsLoading(false);
   };
+  const toggleVisibility = () => {
+    setShowPassword(showPassword === 'password' ? 'text' : 'password');
+  };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-blue-50 py-12">
+    <div className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden bg-linear-to-r from-indigo-50 via-white to-blue-50 py-12">
       <div className="z-10 w-full max-w-md p-8 glass-panel rounded-2xl shadow-xl border border-white/40">
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center justify-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 w-full">
@@ -53,7 +57,7 @@ const Register = () => {
             <div className="h-10 w-px bg-slate-200"></div>
             <img src={muLogo} alt="MU Logo" className="h-10 sm:h-12 w-auto object-contain" />
           </div>
-          <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-800">
+          <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-700 to-indigo-800">
             Create Account
           </h2>
           <p className="text-slate-500 mt-2">Join Campus Security</p>
@@ -167,7 +171,7 @@ const Register = () => {
                 <Lock size={18} className="text-slate-400" />
               </div>
               <input
-                type="password"
+                type={showPassword}
                 name="password"
                 required
                 value={formData.password}
@@ -175,6 +179,13 @@ const Register = () => {
                 className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                 placeholder="••••••••"
               />
+              <button
+                type='button'
+                onClick={toggleVisibility}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                {showPassword === 'password' ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
@@ -195,7 +206,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 px-4 mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''
+            className={`w-full py-3 px-4 mt-2 bg-linear-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''
               }`}
           >
             {isLoading ? 'Creating account...' : 'Create Account'}

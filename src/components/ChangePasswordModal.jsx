@@ -29,7 +29,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.newPassword !== formData.confirmPassword) {
       return setStatus({ type: 'error', message: 'New passwords do not match' });
     }
@@ -46,18 +46,18 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
       });
-      
+
       setStatus({ type: 'success', message: 'Password updated successfully!' });
       setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      
+
       setTimeout(() => {
         onClose();
         setStatus({ type: '', message: '' });
       }, 2000);
     } catch (error) {
-      setStatus({ 
-        type: 'error', 
-        message: error.response?.data?.message || 'Failed to update password' 
+      setStatus({
+        type: 'error',
+        message: error.response?.data?.message || 'Failed to update password'
       });
     } finally {
       setIsLoading(false);
@@ -65,7 +65,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 animate-slide-up">
         <div className="px-6 py-4 flex justify-between items-center border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
             <h2 className="text-xl font-bold text-slate-800">Change Password</h2>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors"
           >
@@ -84,9 +84,8 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {status.message && (
-            <div className={`p-4 rounded-2xl flex items-center gap-3 animate-shake ${
-              status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'
-            }`}>
+            <div className={`p-4 rounded-2xl flex items-center gap-3 animate-shake ${status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'
+              }`}>
               {status.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
               <p className="text-sm font-medium">{status.message}</p>
             </div>
@@ -169,7 +168,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl shadow-lg shadow-indigo-200 disabled:opacity-75 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="flex-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl shadow-lg shadow-indigo-200 disabled:opacity-75 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Update Password'}
             </button>

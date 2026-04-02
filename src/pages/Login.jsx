@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Laptop, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Laptop, Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import mitLogo from '../assets/mit_logo.svg';
 import muLogo from '../assets/mu_logo.svg';
 
@@ -12,6 +12,11 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState('password');
+
+  const toggleVisibility = () => {
+    setShowPassword(showPassword === 'password' ? 'text' : 'password');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,7 +33,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-blue-50">
+    <div className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden bg-linear-to-br from-indigo-50 via-white to-blue-50">
       {/* Decorative background blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
       <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
@@ -41,7 +46,7 @@ const Login = () => {
             <div className="h-10 w-px bg-slate-200"></div>
             <img src={muLogo} alt="MU Logo" className="h-10 sm:h-12 w-auto object-contain" />
           </div>
-          <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-800">
+          <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-700 to-indigo-800">
             Security Portal
           </h2>
           <p className="text-slate-500 mt-2">Sign in to your account</p>
@@ -79,22 +84,28 @@ const Login = () => {
                 <Lock size={18} className="text-slate-400" />
               </div>
               <input
-                type="password"
+                type={showPassword}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
                 placeholder="••••••••"
               />
+              <button
+                type='button'
+                onClick={toggleVisibility}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                {showPassword === 'password' ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 ${
-              isLoading ? 'opacity-70 cursor-not-allowed' : ''
-            }`}
+            className={`w-full py-3 px-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
           >
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
