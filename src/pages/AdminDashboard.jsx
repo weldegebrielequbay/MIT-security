@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Search, Activity, Users, Database, ShieldCheck, Laptop, MapPin, ArrowRightCircle, Loader2, KeyRound } from 'lucide-react';
+import { LogOut, Search, Activity, Users, Database, ShieldCheck, Laptop, MapPin, ArrowRightCircle, Loader2, KeyRound, RefreshCw, Copy, CheckCheck, X } from 'lucide-react';
 import api from '../api';
 import mitLogo from '../assets/mit_logo.svg';
 import muLogo from '../assets/mu_logo.svg';
@@ -21,6 +21,15 @@ const AdminDashboard = () => {
   const [newId, setNewId] = useState('');
   const [isUpdatingId, setIsUpdatingId] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  // Password Reset Tab State
+  const [resetQuery, setResetQuery] = useState('');
+  const [resetRoleFilter, setResetRoleFilter] = useState(''); // '' = all
+  const [resetUsers, setResetUsers] = useState([]);
+  const [isSearchingReset, setIsSearchingReset] = useState(false);
+  const [resettingId, setResettingId] = useState(null);
+  const [resetResult, setResetResult] = useState(null); // { userName, newPassword }
+  const [copied, setCopied] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -75,6 +84,44 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleResetSearch = async (e) => {
+    e.preventDefault();
+    if (!resetQuery.trim()) return;
+    setIsSearchingReset(true);
+    try {
+      const params = new URLSearchParams({ q: resetQuery });
+      if (resetRoleFilter) params.set('role', resetRoleFilter);
+      const { data } = await api.get(`/admin/users/search?${params.toString()}`);
+      setResetUsers(data);
+    } catch (error) {
+      console.error('Error searching users for reset:', error);
+      alert('Failed to search users');
+    } finally {
+      setIsSearchingReset(false);
+    }
+  };
+
+  const handleResetPassword = async (userId) => {
+    if (!window.confirm('Are you sure you want to reset this user\'s password?')) return;
+    setResettingId(userId);
+    try {
+      const { data } = await api.patch(`/admin/users/${userId}/reset-password`);
+      setResetResult({ userName: data.userName, newPassword: data.newPassword });
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to reset password');
+    } finally {
+      setResettingId(null);
+    }
+  };
+
+  const handleCopyPassword = () => {
+    if (resetResult) {
+      navigator.clipboard.writeText(resetResult.newPassword);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   const statsDisplay = stats ? [
     { name: 'Student Registries', value: stats.totalLaptops, icon: <Laptop size={24} className="text-blue-400" />, change: 'Verified Devices' },
     { name: 'In Campus (Students)', value: stats.laptopsInCampus, icon: <MapPin size={24} className="text-emerald-400" />, change: 'Currently Present' },
@@ -115,6 +162,15 @@ const AdminDashboard = () => {
                   }`}
               >
                 <ShieldCheck size={18} /> ID Correction
+              </button>
+              <button
+                onClick={() => setActiveTab('reset')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${activeTab === 'reset'
+                  ? 'bg-rose-600/20 text-rose-400 border border-rose-500/20 shadow-lg'
+                  : 'text-slate-400 hover:bg-slate-700/30 hover:text-slate-200'
+                  }`}
+              >
+                <RefreshCw size={18} /> Password Reset
               </button>
             </nav>
           </div>
@@ -160,12 +216,14 @@ const AdminDashboard = () => {
           <div className="p-6 md:p-8 max-w-7xl w-full mx-auto">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
-                {activeTab === 'dashboard' ? 'System Overview' : 'Identity Management'}
+                {activeTab === 'dashboard' ? 'System Overview' : activeTab === 'users' ? 'Identity Management' : 'Password Reset'}
               </h1>
               <p className="text-slate-400">
                 {activeTab === 'dashboard'
                   ? 'Real-time statistics and activity for Campus Security.'
-                  : 'Search and correct student identification records.'}
+                  : activeTab === 'users'
+                  ? 'Search and correct student identification records.'
+                  : 'Reset account passwords for students and guards.'}
               </p>
             </div>
 
@@ -257,7 +315,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </>
-            ) : (
+            ) : activeTab === 'users' ? (
               /* User Management Tab */
               <div className="space-y-6">
                 <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
@@ -342,6 +400,80 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </div>
+            ) : (
+              /* Password Reset Tab */
+              <div className="space-y-6">
+                <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+                  <form onSubmit={handleResetSearch} className="flex flex-col sm:flex-row gap-4">
+                    <select
+                      value={resetRoleFilter}
+                      onChange={(e) => setResetRoleFilter(e.target.value)}
+                      className="bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 focus:ring-2 focus:ring-rose-500 outline-none transition-all text-slate-300 sm:w-44"
+                    >
+                      <option value="">All Roles</option>
+                      <option value="student">Student</option>
+                      <option value="guard">Guard</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+                      <input
+                        type="text"
+                        value={resetQuery}
+                        onChange={(e) => setResetQuery(e.target.value)}
+                        placeholder="Search by name or University ID..."
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-rose-500 outline-none transition-all"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isSearchingReset}
+                      className="bg-rose-600 hover:bg-rose-700 text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2"
+                    >
+                      {isSearchingReset ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
+                      Search
+                    </button>
+                  </form>
+                </div>
+
+                <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-xl">
+                  <div className="px-6 py-5 border-b border-slate-700 bg-slate-800/50">
+                    <h3 className="font-bold text-white">Search Results</h3>
+                    <p className="text-xs text-slate-500 mt-1">Click "Reset Password" to generate a new temporary password for the user.</p>
+                  </div>
+                  <div className="divide-y divide-slate-700/50">
+                    {resetUsers.length > 0 ? resetUsers.map((u) => (
+                      <div key={u._id} className="p-6 hover:bg-slate-700/10 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-lg font-bold text-white">{u.name}</p>
+                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                              u.role === 'admin' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                              : u.role === 'guard' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                            }`}>{u.role}</span>
+                          </div>
+                          <p className="text-sm text-slate-400 font-mono">{u.universityId}</p>
+                          {u.email && <p className="text-xs text-slate-500 mt-0.5">{u.email}</p>}
+                        </div>
+                        <button
+                          onClick={() => handleResetPassword(u._id)}
+                          disabled={resettingId === u._id}
+                          className="flex items-center gap-2 bg-rose-600/10 hover:bg-rose-600/20 text-rose-400 border border-rose-500/30 hover:border-rose-500/60 px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
+                        >
+                          {resettingId === u._id ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
+                          Reset Password
+                        </button>
+                      </div>
+                    )) : (
+                      <div className="p-12 text-center text-slate-500">
+                        <Users size={48} className="mx-auto mb-4 opacity-10" />
+                        <p>Search for a user to reset their password.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </main>
@@ -351,6 +483,53 @@ const AdminDashboard = () => {
         isOpen={showPasswordModal}
         onClose={() => setShowPasswordModal(false)}
       />
+
+      {/* Password Reset Result Modal */}
+      {resetResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-8 relative animate-fade-in">
+            <button
+              onClick={() => { setResetResult(null); setCopied(false); }}
+              className="absolute top-4 right-4 text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center justify-center h-14 w-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 mx-auto mb-5">
+              <RefreshCw size={24} className="text-emerald-400" />
+            </div>
+
+            <h2 className="text-xl font-bold text-white text-center mb-1">Password Reset Successful</h2>
+            <p className="text-slate-400 text-sm text-center mb-6">
+              Give this temporary password to <span className="font-semibold text-slate-200">{resetResult.userName}</span>. They should change it after logging in.
+            </p>
+
+            <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex items-center justify-between gap-4 mb-6">
+              <span className="font-mono text-2xl font-bold tracking-widest text-emerald-400 select-all">
+                {resetResult.newPassword}
+              </span>
+              <button
+                onClick={handleCopyPassword}
+                className="flex-shrink-0 flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+              >
+                {copied ? <CheckCheck size={16} className="text-emerald-400" /> : <Copy size={16} />}
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+
+            <p className="text-xs text-rose-400/80 text-center">
+              ⚠ This password will not be shown again. Copy it now.
+            </p>
+
+            <button
+              onClick={() => { setResetResult(null); setCopied(false); }}
+              className="mt-5 w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl font-bold transition-all"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -31,9 +31,10 @@ router.post('/register', async (req, res) => {
     const user = await User.create({
       name,
       universityId,
-      email,
+      // Only store email if it's a non-empty string; undefined is skipped by the sparse index
+      email: (email && email.trim() !== '') ? email.trim() : undefined,
       password,
-      role: role || 'student', // default to student unless specified
+      role: role || 'student',
     });
 
     if (user) {
