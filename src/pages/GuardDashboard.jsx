@@ -9,7 +9,7 @@ import ChangePasswordModal from '../components/ChangePasswordModal';
 
 const GuardDashboard = () => {
   const { user, logout } = useAuth();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState('mit/ur//');
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +30,7 @@ const GuardDashboard = () => {
     } finally {
       setIsLoading(false);
       setHasSearched(true);
+      setQuery('mit/ur//');
     }
   };
 

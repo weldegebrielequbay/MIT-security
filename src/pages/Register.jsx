@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Laptop, Lock, Mail, User, Shield, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Laptop, Lock, Mail, User, Shield, AlertCircle, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import mitLogo from '../assets/mit_logo.svg';
 import muLogo from '../assets/mu_logo.svg';
 
@@ -10,7 +10,7 @@ const Register = () => {
     firstName: '',
     fatherName: '',
     grandfatherName: '',
-    universityId: '',
+    universityId: 'mit/ur//',
     email: '',
     password: '',
     role: 'student', // default
@@ -155,7 +155,7 @@ const Register = () => {
               <input
                 type="email"
                 name="email"
-                required
+                required={formData.role !== 'guard'}
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
@@ -190,17 +190,22 @@ const Register = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Account Type (For Testing)</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
-            >
-              <option value="student">Student</option>
-              <option value="guard">Security Guard</option>
-              <option value="admin">Administrator</option>
-            </select>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Account Type</label>
+            <div className="relative">
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+              >
+                <option value="student">Student</option>
+                <option value="guard">Security Guard</option>
+                <option value="admin">Administrator</option>
+              </select>
+              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                <ChevronDown size={18} className="text-slate-400" />
+              </div>
+            </div>
           </div>
 
           <button

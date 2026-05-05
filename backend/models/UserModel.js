@@ -13,12 +13,14 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
+    required: function() { return this.role !== 'guard'; },
     unique: true,
+    sparse: true,
   },
   password: {
     type: String,
     required: true,
+    select: false,
   },
   role: {
     type: String,
@@ -29,6 +31,14 @@ const userSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+// Middleware to unset empty email for guards to allow sparse index to work
+userSchema.pre('validate', function(next) {
+  if (this.role === 'guard' && (!this.email || this.email.trim() === '')) {
+    this.email = undefined;
+  }
+  next();
+});
+
 // Middleware to hash the password before saving
 userSchema.pre('save', async function hashPassword() {
   console.log('-> DB HOOK: Hashing password in User.js v3.1');
@@ -36,7 +46,7 @@ userSchema.pre('save', async function hashPassword() {
     console.log('-> DB HOOK: Password not modified skipping.');
     return;
   }
-  
+
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   console.log('-> DB HOOK: Password hashed successfully.');

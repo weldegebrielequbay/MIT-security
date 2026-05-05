@@ -14,7 +14,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' or 'users'
 
   // User Management State
-  const [userQuery, setUserQuery] = useState('');
+  const [userQuery, setUserQuery] = useState('mit/ur//');
   const [users, setUsers] = useState([]);
   const [isSearchingUsers, setIsSearchingUsers] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
@@ -54,6 +54,7 @@ const AdminDashboard = () => {
       alert('Failed to search users');
     } finally {
       setIsSearchingUsers(false);
+      setUserQuery('mit/ur//');
     }
   };
 
@@ -233,7 +234,8 @@ const AdminDashboard = () => {
                               <p className="text-[10px] text-slate-500">{act.studentId?.universityId}</p>
                             </td>
                             <td className="px-6 py-4 text-sm text-slate-400 font-medium">
-                              {act.guardId?.name?.split(' ')[0]}
+                              <p className="text-sm font-medium text-slate-300">{act.guardId?.name}</p>
+                              <p className="text-[10px] text-slate-500">{act.guardId?.universityId}</p>
                             </td>
                             <td className="px-6 py-4 text-right text-xs text-slate-500 font-medium">
                               {new Date(act.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -345,9 +347,9 @@ const AdminDashboard = () => {
         </main>
       </div>
 
-      <ChangePasswordModal 
-        isOpen={showPasswordModal} 
-        onClose={() => setShowPasswordModal(false)} 
+      <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
       />
     </div>
   );

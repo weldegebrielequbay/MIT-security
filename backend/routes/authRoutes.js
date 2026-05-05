@@ -18,7 +18,11 @@ router.post('/register', async (req, res) => {
   try {
     const { name, universityId, email, password, role } = req.body;
 
-    const userExists = await User.findOne({ $or: [{ email }, { universityId }] });
+    const orConditions = [{ universityId }];
+    if (email && email.trim() !== '') {
+      orConditions.push({ email });
+    }
+    const userExists = await User.findOne({ $or: orConditions });
     if (userExists) {
       res.status(400);
       throw new Error('User already exists');
@@ -57,7 +61,7 @@ router.post('/login', async (req, res) => {
   try {
     const { universityId, password } = req.body;
 
-    const user = await User.findOne({ universityId });
+    const user = await User.findOne({ universityId }).select('+password');
 
     if (user && (await user.matchPassword(password))) {
       res.json({
@@ -89,7 +93,7 @@ router.put('/update-password', protect, async (req, res) => {
       throw new Error('Please provide current and new passwords');
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('+password');
 
     if (user && (await user.matchPassword(currentPassword))) {
       user.password = newPassword;
