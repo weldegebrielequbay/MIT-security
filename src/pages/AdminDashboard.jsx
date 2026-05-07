@@ -12,6 +12,10 @@ const AdminDashboard = () => {
   const [activities, setActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' or 'users'
+  const [activityQuery, setActivityQuery] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [isSearchingActivities, setIsSearchingActivities] = useState(false);
 
   // User Management State
   const [userQuery, setUserQuery] = useState('mit/ur//');
@@ -46,6 +50,28 @@ const AdminDashboard = () => {
       setIsLoading(false);
     }
   };
+
+  const handleActivitySearch = (e) => {
+    e.preventDefault();
+    // Snapshot current values, then clear inputs immediately
+    const q = activityQuery.trim();
+    const sd = startDate;
+    const ed = endDate;
+    setActivityQuery('');
+    setStartDate('');
+    setEndDate('');
+    setActivities([]);
+    setIsSearchingActivities(true);
+    const params = new URLSearchParams();
+    if (q) params.append('q', q);
+    if (sd) params.append('startDate', sd);
+    if (ed) params.append('endDate', ed);
+    api.get(`/admin/activities?${params.toString()}`)
+      .then(res => setActivities(res.data))
+      .catch(err => console.error('Error fetching activities:', err))
+      .finally(() => setIsSearchingActivities(false));
+  };
+
 
   useEffect(() => {
     fetchData();
@@ -254,11 +280,47 @@ const AdminDashboard = () => {
 
                 {/* Activity Feed */}
                 <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-xl shadow-black/20 mb-8">
-                  <div className="px-6 py-5 border-b border-slate-700 flex justify-between items-center bg-slate-800/50 backdrop-blur-sm">
-                    <div className="flex items-center gap-2">
+                  <div className="px-6 py-5 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-800/50 backdrop-blur-sm gap-4">
+                    <div className="flex items-center gap-2 mb-3 sm:mb-0">
                       <Activity size={18} className="text-indigo-400" />
                       <h3 className="font-bold text-lg text-white">Live Activity Feed</h3>
                     </div>
+                    <form onSubmit={handleActivitySearch} className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-slate-400 w-full"
+                          title="Start Date"
+                        />
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-slate-400 w-full"
+                          title="End Date"
+                        />
+                      </div>
+                      <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                        <input
+                          type="text"
+                          placeholder="Search type, ID, or serial..."
+                          value={activityQuery}
+                          onChange={(e) => setActivityQuery(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-9 pr-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-slate-200"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isSearchingActivities}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-all flex items-center justify-center gap-2 text-sm whitespace-nowrap"
+                      >
+                        {isSearchingActivities ? <Loader2 className="animate-spin" size={16} /> : <Search size={16} />}
+                        Filter
+                      </button>
+                    </form>
                   </div>
 
                   <div className="overflow-x-auto">
@@ -304,8 +366,8 @@ const AdminDashboard = () => {
                             <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
                               <div className="flex flex-col items-center">
                                 <Database size={40} className="mb-3 opacity-20" />
-                                <p>No movement activities recorded yet.</p>
-                                <p className="text-xs mt-1">Status updates from checkpoints will appear here.</p>
+                                <p>{activityQuery ? 'No activities match your search.' : 'No movement activities recorded yet.'}</p>
+                                {!activityQuery && <p className="text-xs mt-1">Status updates from checkpoints will appear here.</p>}
                               </div>
                             </td>
                           </tr>
@@ -510,7 +572,7 @@ const AdminDashboard = () => {
               </span>
               <button
                 onClick={handleCopyPassword}
-                className="flex-shrink-0 flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+                className="shrink-0 flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded-lg text-sm font-medium transition-all"
               >
                 {copied ? <CheckCheck size={16} className="text-emerald-400" /> : <Copy size={16} />}
                 {copied ? 'Copied!' : 'Copy'}

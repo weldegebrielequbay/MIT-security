@@ -139,15 +139,64 @@ router.patch('/users/:id/universityId', protect, authorize('admin'), async (req,
 // @access  Private (Admin)
 router.get('/activities', protect, authorize('admin'), async (req, res) => {
   try {
-    const activities = await Activity.find()
+    const { q, startDate, endDate } = req.query;
+    const conditions = [];
+
+    // Date range filter
+    if (startDate || endDate) {
+      const dateFilter = { createdAt: {} };
+      if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        dateFilter.createdAt.$lte = end;
+      }
+      conditions.push(dateFilter);
+    }
+
+    // Text search filter: matches guard ID, student ID, serial number, or action type
+    if (q) {
+      const escapedQuery = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = { $regex: escapedQuery, $options: 'i' };
+
+      const matchedUsers = await User.find({
+        $or: [
+          { universityId: regex },
+          { name: regex }
+        ]
+      }).select('_id');
+
+      const matchedLaptops = await Laptop.find({ serialNumber: regex }).select('_id');
+
+      const userIds = matchedUsers.map(u => u._id);
+      const laptopIds = matchedLaptops.map(l => l._id);
+
+      console.log(`[Activity Filter] q="${q}" → matched ${userIds.length} user(s), ${laptopIds.length} laptop(s)`);
+
+      conditions.push({
+        $or: [
+          { action: regex },
+          { studentId: { $in: userIds } },
+          { guardId: { $in: userIds } },
+          { laptopId: { $in: laptopIds } }
+        ]
+      });
+    }
+
+    // Combine with $and so date + text filters both apply
+    const query = conditions.length > 0 ? { $and: conditions } : {};
+
+    const activities = await Activity.find(query)
       .populate('laptopId', 'brand model serialNumber')
       .populate('studentId', 'name universityId')
-      .populate('guardId', 'name')
+      .populate('guardId', 'name universityId')
       .sort({ createdAt: -1 })
-      .limit(20);
+      .limit(100);
 
+    console.log(`[Activity Filter] Returning ${activities.length} result(s)`);
     res.json(activities);
   } catch (error) {
+    console.error('[Activity Filter] Error:', error);
     res.status(400).json({ message: error.message });
   }
 });

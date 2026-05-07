@@ -13,7 +13,8 @@ const Register = () => {
     universityId: 'mit/ur//',
     email: '',
     password: '',
-    role: 'student', // default
+    role: '', 
+    department: '',
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,13 +28,44 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
 
-    const { firstName, fatherName, grandfatherName, ...rest } = formData;
+    // --- Client-side Validation ---
+    const { firstName, fatherName, grandfatherName, role, email, password, department } = formData;
+
+    if (!role) {
+      setError('Please select an account type.');
+      return;
+    }
+    if (!firstName.trim() || !fatherName.trim() || !grandfatherName.trim()) {
+      setError('All name fields are required.');
+      return;
+    }
+    if (role === 'student' && !department) {
+      setError('Please select your department.');
+      return;
+    }
+    if (role !== 'guard') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        setError('Please enter a valid email address.');
+        return;
+      }
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
+    setIsLoading(true);
+    const name = `${firstName} ${fatherName} ${grandfatherName}`.trim();
     const payload = {
-      ...rest,
-      name: `${firstName} ${fatherName} ${grandfatherName}`.trim(),
+      name,
+      universityId: formData.universityId.trim(),
+      email: email.trim(),
+      password,
+      role,
+      department,
     };
 
     const result = await register(payload);
@@ -71,6 +103,27 @@ const Register = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Account Type</label>
+            <div className="relative">
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+              >
+                <option value="" disabled>Select account type</option>
+                <option value="student">Student</option>
+                <option value="guard">Security Guard</option>
+                <option value="admin">Administrator</option>
+              </select>
+              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                <ChevronDown size={18} className="text-slate-400" />
+              </div>
+            </div>
+          </div>
+
           {/* First Name */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>
@@ -189,24 +242,33 @@ const Register = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Account Type</label>
-            <div className="relative">
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
-              >
-                <option value="student">Student</option>
-                <option value="guard">Security Guard</option>
-                <option value="admin">Administrator</option>
-              </select>
-              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                <ChevronDown size={18} className="text-slate-400" />
+
+          {/* Department — only for students */}
+          {formData.role === 'student' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
+              <div className="relative">
+                <select
+                  name="department"
+                  value={formData.department}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+                >
+                  <option value="">Select your program</option>
+                  <option value="Computer Science AND ENGINEERING">CSE</option>
+                  <option value="Information Technology">IT</option>
+                  <option value="BOILOGICAL AND CHEMICAL ENGINEERING">BCN</option>
+                  <option value="Electrical and Communication Engineering">ECE</option>
+                  <option value="Electrical AND ELECTRONICS Engineering">EEE</option>
+
+                </select>
+                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                  <ChevronDown size={18} className="text-slate-400" />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <button
             type="submit"

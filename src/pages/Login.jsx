@@ -20,10 +20,30 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
 
-    const result = await login(universityId, password);
+    // --- Client-side Validation ---
+    const trimmedId = universityId.trim();
+    if (!trimmedId) {
+      setError('Please enter your Student or Guard ID.');
+      return;
+    }
+    if (!password) {
+      setError('Please enter your password.');
+      return;
+    }
+    if (trimmedId.length > 50) {
+      setError('ID is too long.');
+      return;
+    }
+    if (password.length > 128) {
+      setError('Password is too long.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    const result = await login(trimmedId, password);
     if (result.success) {
       navigate('/');
     } else {

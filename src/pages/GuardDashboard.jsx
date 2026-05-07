@@ -207,7 +207,7 @@ const GuardDashboard = () => {
                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Owner Details</h4>
                         <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
                           <div className="flex items-center gap-4 mb-4">
-                            <div className="h-12 w-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg hidden sm:flex">
+                            <div className="h-12 w-12 rounded-full bg-blue-100 text-blue-60 items-center justify-center font-bold text-lg hidden sm:flex">
                               {laptop.studentId?.name?.charAt(0).toUpperCase()}
                             </div>
                             <div>
@@ -229,7 +229,7 @@ const GuardDashboard = () => {
                         <button
                           disabled={updatingId === laptop._id}
                           onClick={() => handleUpdateLocation(laptop._id, laptop.locationStatus || 'Out of Campus')}
-                          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm hover:shadow-md ${updatingId === laptop._id ? 'opacity-50 cursor-not-allowed bg-slate-400 text-white cursor-pointer' :
+                          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm hover:shadow-md ${updatingId === laptop._id ? 'opacity-50 bg-slate-400 text-white cursor-pointer' :
                             (laptop.locationStatus || 'Out of Campus') === 'In Campus'
                               ? 'bg-amber-500 hover:bg-amber-600 text-white'
                               : 'bg-blue-600 hover:bg-blue-700 text-white'
